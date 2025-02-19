@@ -20,8 +20,10 @@ class VisitCounterService:
             page_id: Unique identifier for the page
         """
         # TODO: Implement visit count increment
-        async with VisitCounterService.locks[page_id]:
-            VisitCounterService.visit_counter[page_id] += 1
+        # async with VisitCounterService.locks[page_id]:
+        #     VisitCounterService.visit_counter[page_id] += 1
+        await self.redis_manager.increment(page_id,1)
+
         pass
 
     async def get_visit_count(self, page_id: str) -> int:
@@ -35,6 +37,8 @@ class VisitCounterService:
             Current visit count
         """
         # TODO: Implement getting visit count
-        async with VisitCounterService.locks[page_id]:
-            return VisitCounterService.visit_counter[page_id]
-        return 0
+        # async with VisitCounterService.locks[page_id]:
+        #     return VisitCounterService.visit_counter[page_id]
+        # return 0
+        counts = await self.redis_manager.get(page_id)
+        return counts
