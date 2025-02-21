@@ -1,13 +1,16 @@
 from typing import Dict, List, Any
 import asyncio
-from datetime import datetime
+from datetime import datetime,timedelta
 from ..core.redis_manager import RedisManager
 from collections import defaultdict
 
 class VisitCounterService:
-    visit_counter = defaultdict(int)
-    locks = defaultdict(asyncio.Lock)
-
+    # visit_counter = defaultdict(int)
+    # locks = defaultdict(asyncio.Lock)
+    
+    visit_count_dict:Dict[str,Dict] = {}
+    Locks = defaultdict(asyncio.Lock)
+    tld = 50
     def __init__(self):
         """Initialize the visit counter service with Redis manager"""
         self.redis_manager = RedisManager()
@@ -40,5 +43,12 @@ class VisitCounterService:
         # async with VisitCounterService.locks[page_id]:
         #     return VisitCounterService.visit_counter[page_id]
         # return 0
+        # counts = await self.redis_manager.get(page_id)
+        # return counts
+        if page_id in VisitCounterService.visit_count_dict:
+            if datetime.now()-VisitCounterService.visit_count_dict[page_id]['time']<timedelta(seconds=VisitCounterService.tld):
+                return VisitCounterService.visit_count_dict[page_id]['count']
         counts = await self.redis_manager.get(page_id)
+        VisitCounterService.visit_count_dict[page_id] = {'count':counts,'time':datetime.now()}
         return counts
+        pass
